@@ -48,7 +48,7 @@
 
 ## התקנה והרצה
 
-**דרישות:** Node.js 20.19 ומעלה, ו[שרת פסיפס](https://github.com/ESTY123SWID/psifas-server) שרץ מקומית.
+**דרישות מערכת:** Node.js 20.19 ומעלה, ו[שרת פסיפס](https://github.com/ESTY123SWID/psifas-server) שרץ מקומית.
 
 ```bash
 npm install
