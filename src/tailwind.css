@@ -1,0 +1,269 @@
+@import "tailwindcss";
+
+/*
+ * פסיפס — design tokens.
+ * The editorial language of "יחד": calm surfaces, hairline borders, almost-square corners,
+ * light oversized headings and generous space — made warmer: a cream paper background and
+ * the colours of the Psifas logo (deep teal-green, sand) as the brand tones.
+ *
+ * Token names are kept stable so every component picks up the theme from here.
+ */
+@theme {
+  --font-sans: "Assistant Variable", "Assistant", "Segoe UI", Arial, sans-serif;
+  --font-display: "Heebo Variable", "Heebo", "Assistant Variable", sans-serif;
+
+  /* ink */
+  --color-ink: #1d1a16;
+  --color-ink-2: #4d4740;
+  --color-ink-soft: #857c70;
+
+  /* warm surfaces */
+  --color-paper: #faf6ef;
+  --color-surface: #ffffff;
+  --color-sand-l: #f4ecdf;
+  --color-line: #e7dfd2;
+  --color-line-strong: #cfc4b2;
+
+  /* brand: the deep teal-green of the logo */
+  --color-blue: #2d5c58;
+  --color-blue-deep: #22463f;
+  --color-night: #1a3631;
+  --color-mist: #edf3f0;
+  --color-mist-strong: #c9dbd4;
+
+  /* supporting, warm tones */
+  --color-teal: #3e6b54;
+  --color-teal-mist: #eef4ee;
+  --color-sand: #b0874f;
+  --color-sun: #946a24;
+  --color-sun-mist: #f7efe0;
+  --color-lilac: #8c4b5c;
+  --color-lilac-mist: #f8edf0;
+  --color-coral: #a8463a;
+  --color-coral-mist: #f9ecea;
+
+  /* shape & depth — restrained on purpose */
+  --radius-sm: 2px;
+  --radius-md: 3px;
+  --radius-lg: 4px;
+  --radius-xl: 4px;
+  --radius-2xl: 6px;
+  --radius-3xl: 8px;
+  --shadow-soft: 0 1px 2px rgb(29 26 22 / 0.03);
+  --shadow-lift: 0 14px 34px -18px rgb(29 26 22 / 0.22);
+
+  --animate-shimmer: shimmer 1.6s ease-in-out infinite;
+  @keyframes shimmer {
+    0%, 100% { opacity: 0.55; }
+    50% { opacity: 1; }
+  }
+  /* Fade only: an animated `transform` would make the page the containing block of
+     `position: fixed` dialogs, so their backdrop would no longer cover the whole screen. */
+  --animate-page-in: page-in 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  @keyframes page-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+}
+
+@layer base {
+  html {
+    background: var(--color-paper);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply bg-paper font-sans text-[17px] leading-[1.7] text-ink antialiased;
+  }
+
+  ::selection {
+    @apply bg-mist text-blue-deep;
+  }
+
+  :focus-visible {
+    @apply outline-2 outline-offset-3 outline-blue;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@layer components {
+  /* ---------- layout & type ---------- */
+  .wrap {
+    @apply mx-auto w-full max-w-[1140px] px-[18px] sm:px-8;
+  }
+
+  .page {
+    @apply mx-auto w-full max-w-[1140px] animate-page-in px-[18px] pt-12 pb-24 sm:px-8 sm:pt-16 sm:pb-28;
+  }
+
+  .eyebrow {
+    @apply inline-block text-xs font-semibold tracking-[0.24em] text-ink-soft;
+  }
+
+  .page-title {
+    @apply font-display text-[clamp(2.25rem,5vw,3.25rem)] leading-[1.1] font-normal tracking-[-0.01em] text-ink;
+  }
+
+  .page-sub {
+    @apply text-[1.15rem] leading-8 font-light text-ink-soft;
+  }
+
+  .section-title {
+    @apply font-display text-[1.6rem] leading-tight font-normal text-ink;
+  }
+
+  .section-label {
+    @apply text-[0.8rem] font-semibold tracking-[0.2em] text-ink-soft;
+  }
+
+  .card {
+    @apply border border-line bg-surface;
+  }
+
+  /* the heavy top line of the main cards */
+  .card-accent {
+    @apply border-t-2 border-t-ink;
+  }
+
+  .card-pad {
+    @apply px-[22px] py-[26px] sm:p-9;
+  }
+
+  /* ---------- buttons ---------- */
+  .btn {
+    @apply inline-flex h-[50px] items-center justify-center gap-2.5 rounded-sm border border-ink bg-ink px-7 text-[15px] font-semibold tracking-[0.02em] whitespace-nowrap text-white transition duration-200 select-none hover:-translate-y-px hover:shadow-lift active:translate-y-0 active:shadow-none disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:translate-y-0 disabled:hover:shadow-none;
+  }
+
+  .btn-sm {
+    @apply h-10 px-[18px] text-sm;
+  }
+
+  .btn-primary {
+    @apply hover:bg-black;
+  }
+
+  .btn-brand {
+    @apply border-blue bg-blue hover:border-blue-deep hover:bg-blue-deep;
+  }
+
+  .btn-secondary {
+    @apply bg-transparent text-ink hover:bg-ink hover:text-white;
+  }
+
+  .btn-ghost {
+    @apply border-transparent bg-transparent px-3 text-ink-2 hover:bg-sand-l hover:text-ink hover:shadow-none;
+  }
+
+  .btn-danger {
+    @apply border-coral bg-coral hover:bg-[#8f3a30];
+  }
+
+  .btn-danger-soft {
+    @apply border-coral/40 bg-transparent text-coral hover:border-coral hover:bg-coral hover:text-white;
+  }
+
+  .icon-btn {
+    @apply inline-flex h-9 w-9 items-center justify-center rounded-sm text-ink-2 transition hover:bg-sand-l hover:text-ink disabled:opacity-40;
+  }
+
+  .link {
+    @apply font-semibold text-blue underline decoration-blue/30 underline-offset-[5px] transition hover:text-blue-deep hover:decoration-blue;
+  }
+
+  /* ---------- forms: underline fields, as in "יחד" ---------- */
+  .field-label {
+    @apply mb-1 block text-[0.82rem] font-semibold tracking-[0.06em] text-ink-2;
+  }
+
+  .field-hint {
+    @apply mt-2 text-[0.82rem] leading-5 text-ink-soft;
+  }
+
+  .field-error {
+    @apply mt-2 text-sm text-coral;
+  }
+
+  .input {
+    @apply w-full rounded-none border-0 border-b border-line-strong bg-transparent px-0 py-3 text-base text-ink transition outline-none placeholder:text-ink-soft/70 focus:border-ink disabled:opacity-60 aria-[invalid=true]:border-coral;
+  }
+
+  /* a boxed field, for filters and toolbars */
+  .input-boxed {
+    @apply rounded-sm border border-line bg-surface px-3.5 focus:border-ink;
+  }
+
+  /* used together with .input: className="input select" */
+  .select {
+    @apply cursor-pointer appearance-none bg-[length:1rem] bg-[position:left_0.25rem_center] bg-no-repeat pl-8;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%231d1a16' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  }
+
+  /* segmented control built from visually-hidden radios (`peer sr-only`): underline tabs */
+  .segmented {
+    @apply inline-flex flex-wrap gap-5 border-b border-line;
+  }
+
+  .segment {
+    @apply -mb-px cursor-pointer border-b-2 border-transparent py-2 text-[15px] font-semibold text-ink-soft transition peer-checked:border-ink peer-checked:text-ink peer-focus-visible:outline-2 peer-focus-visible:outline-blue hover:text-ink;
+  }
+
+  /* ---------- feedback ---------- */
+  .alert-error {
+    @apply border-s-2 border-coral bg-coral-mist px-5 py-4 text-[15px] leading-6 text-coral;
+  }
+
+  .alert-success {
+    @apply border-s-2 border-teal bg-teal-mist px-5 py-4 text-[15px] leading-6 text-teal;
+  }
+
+  .alert-warning {
+    @apply border-s-2 border-sun bg-sun-mist px-5 py-4 text-[15px] leading-6 text-sun;
+  }
+
+  .alert-note {
+    @apply border-s-2 border-ink bg-sand-l px-5 py-4 text-[15px] leading-6 text-ink-2;
+  }
+
+  .badge {
+    @apply inline-flex items-center gap-1.5 border border-line bg-surface px-3 py-0.5 text-xs leading-[1.8] font-semibold tracking-[0.04em] whitespace-nowrap text-ink-2;
+  }
+
+  /* ---------- tables ---------- */
+  .data-table {
+    @apply w-full min-w-[640px] border-collapse text-right text-[15px];
+  }
+
+  .data-table th {
+    @apply border-b border-ink px-4 py-3 text-xs font-semibold tracking-[0.16em] text-ink-soft;
+  }
+
+  .data-table td {
+    @apply border-b border-line px-4 py-4 text-ink;
+  }
+
+  .data-table tbody tr {
+    @apply transition-colors hover:bg-paper;
+  }
+
+  /* ---------- modal ---------- */
+  .modal-backdrop {
+    @apply fixed inset-0 z-[90] flex items-end justify-center bg-ink/40 p-0 backdrop-blur-[2px] sm:items-center sm:p-6;
+  }
+
+  .modal-panel {
+    @apply max-h-[94svh] w-full overflow-y-auto border-t-2 border-t-ink bg-surface p-6 shadow-lift sm:max-w-xl sm:p-10;
+  }
+}
+
+@utility scrollbar-none {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
