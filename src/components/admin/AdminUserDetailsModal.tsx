@@ -12,6 +12,7 @@ import { readApiError } from "../../services/apiError";
 import ConfirmDialog from "../common/ConfirmDialog";
 import Avatar from "../ui/Avatar";
 import { formatCount, formatDate } from "../ui/format";
+import Modal from "../ui/Modal";
 import { ErrorState, Skeleton } from "../ui/States";
 
 function getUserActionError(error: unknown): string {
@@ -43,14 +44,6 @@ function AdminUserDetailsModal({ userId, onClose, onDeleted }: AdminUserDetailsM
         setIsConfirmOpen(false);
         resetDelete();
     }, [resetDelete, user?.id, user?.role]);
-
-    useEffect(() => {
-        const handleKey = (event: KeyboardEvent) => {
-            if (event.key === "Escape" && !isConfirmOpen && !isDeleting) onClose();
-        };
-        document.addEventListener("keydown", handleKey);
-        return () => document.removeEventListener("keydown", handleKey);
-    }, [isConfirmOpen, isDeleting, onClose]);
 
     const isSelf = currentUser?.id === userId;
     const adminCount = user?.systemAdminCount;
@@ -115,18 +108,12 @@ function AdminUserDetailsModal({ userId, onClose, onDeleted }: AdminUserDetailsM
                         : null;
 
     return (
-        <div
-            className="modal-backdrop"
-            role="presentation"
-            onMouseDown={(event) => {
-                if (event.target === event.currentTarget && !isConfirmOpen && !isDeleting) handleClose();
-            }}
-        >
-            <section className="modal-panel" role="dialog" aria-modal="true" aria-labelledby="admin-user-title">
-                <header className="mb-7 flex items-start justify-between gap-4">
+        <>
+        <Modal labelledBy="admin-user-title" onClose={handleClose} dismissible={!isDeleting}>
+                <header className="mb-5 flex items-start justify-between gap-4">
                     <div>
                         <p className="eyebrow">ניהול מערכת</p>
-                        <h2 className="mt-2 font-display text-[2rem] leading-tight font-normal" id="admin-user-title">פרטי משתמשת</h2>
+                        <h2 className="mt-1.5 font-display text-[1.75rem] leading-tight font-normal" id="admin-user-title">פרטי משתמשת</h2>
                     </div>
                     <button className="icon-btn" type="button" onClick={handleClose} aria-label="סגירת פרטי משתמשת">
                         <X size={20} aria-hidden="true" />
@@ -141,7 +128,7 @@ function AdminUserDetailsModal({ userId, onClose, onDeleted }: AdminUserDetailsM
                     <p className="alert-error" role="alert">השרת החזיר פרטי משתמשת לא תקינים.</p>
                 ) : (
                     <>
-                        <div className="mb-6 flex items-center gap-4">
+                        <div className="mb-5 flex items-center gap-4">
                             <Avatar name={user.name} size="lg" />
                             <div className="min-w-0">
                                 <p className="truncate text-xl font-bold">{user.name?.trim() || "שם לא זמין"}</p>
@@ -149,30 +136,40 @@ function AdminUserDetailsModal({ userId, onClose, onDeleted }: AdminUserDetailsM
                             </div>
                         </div>
 
-                        <dl className="grid grid-cols-[max-content_1fr] gap-x-6 gap-y-3 border-t border-b border-line py-5 text-[15px]">
-                            <dt className="text-ink-soft">תפקיד</dt>
-                            <dd>
-                                {user.role === "SystemAdmin" ? (
-                                    <span className="badge border-lilac/30 bg-lilac-mist text-lilac">מנהלת מערכת</span>
-                                ) : (
-                                    <span className="badge">משתמשת</span>
-                                )}
-                            </dd>
-                            <dt className="text-ink-soft">כיתות</dt>
-                            <dd className="tabular-nums">{formatCount(user.classCount)}</dd>
-                            <dt className="text-ink-soft">מנהלת כיתות</dt>
-                            <dd className="tabular-nums">{formatCount(user.managedClassCount)}</dd>
-                            <dt className="text-ink-soft">נרשמה</dt>
-                            <dd>{registeredAt ?? "לא זמין"}</dd>
-                            <dt className="text-ink-soft">מזהה</dt>
-                            <dd className="tabular-nums">{user.id}</dd>
+                        <dl className="grid grid-cols-3 gap-x-4 gap-y-3 border-t border-b border-line py-4 text-[15px]">
+                            <div>
+                                <dt className="text-[13px] text-ink-soft">תפקיד</dt>
+                                <dd className="mt-1">
+                                    {user.role === "SystemAdmin" ? (
+                                        <span className="badge border-lilac/30 bg-lilac-mist text-lilac">מנהלת מערכת</span>
+                                    ) : (
+                                        <span className="badge">משתמשת</span>
+                                    )}
+                                </dd>
+                            </div>
+                            <div>
+                                <dt className="text-[13px] text-ink-soft">נרשמה</dt>
+                                <dd className="mt-1">{registeredAt ?? "לא זמין"}</dd>
+                            </div>
+                            <div>
+                                <dt className="text-[13px] text-ink-soft">כיתות</dt>
+                                <dd className="mt-1 tabular-nums">{formatCount(user.classCount)}</dd>
+                            </div>
+                            <div>
+                                <dt className="text-[13px] text-ink-soft">מנהלת כיתות</dt>
+                                <dd className="mt-1 tabular-nums">{formatCount(user.managedClassCount)}</dd>
+                            </div>
+                            <div>
+                                <dt className="text-[13px] text-ink-soft">מזהה</dt>
+                                <dd className="mt-1 tabular-nums">{user.id}</dd>
+                            </div>
                         </dl>
 
                         {canChangeRole ? (
-                            <section className="mt-6" aria-labelledby="admin-user-role-title">
+                            <section className="mt-5" aria-labelledby="admin-user-role-title">
                                 <h3 id="admin-user-role-title" className="section-label mb-3">תפקיד במערכת</h3>
-                                <div className="flex flex-wrap items-end gap-4">
-                                    <div className="min-w-48 flex-1">
+                                <div className="flex items-end gap-3">
+                                    <div className="min-w-0 flex-1">
                                         <label className="sr-only" htmlFor="admin-user-role">תפקיד במערכת</label>
                                         <select
                                             id="admin-user-role"
@@ -192,7 +189,7 @@ function AdminUserDetailsModal({ userId, onClose, onDeleted }: AdminUserDetailsM
                                         type="button"
                                         onClick={() => void handleRoleSave()}
                                         disabled={isUpdatingRole || roleUnchanged || (isLastSystemAdmin && selectedRole === "User")}
-                                        className="btn btn-brand btn-sm"
+                                        className="btn btn-brand btn-sm shrink-0"
                                     >
                                         {isUpdatingRole ? "מעדכנת..." : "שמירת תפקיד"}
                                     </button>
@@ -207,15 +204,16 @@ function AdminUserDetailsModal({ userId, onClose, onDeleted }: AdminUserDetailsM
                                 )}
                             </section>
                         ) : (
-                            isSelf && <p className="alert-note mt-6">זה החשבון שלך — אי אפשר לשנות כאן את התפקיד שלך.</p>
+                            isSelf && <p className="alert-note mt-5">זה החשבון שלך — אי אפשר לשנות כאן את התפקיד שלך.</p>
                         )}
 
-                        <footer className="mt-8 border-t border-line pt-6">
-                            <h3 className="section-label mb-3 text-coral">מחיקת חשבון</h3>
+                        <footer className="mt-6 border-t border-line pt-5">
+                            <h3 className="section-label mb-2 text-coral">מחיקת חשבון</h3>
+                            <div className="flex flex-wrap items-center justify-between gap-x-5 gap-y-3">
                             {deleteBlockReason ? (
-                                <p className="text-[15px] font-light text-ink-2">{deleteBlockReason}</p>
+                                <p className="min-w-0 flex-[1_1_240px] text-[15px] leading-6 font-light text-ink-2">{deleteBlockReason}</p>
                             ) : (
-                                <p className="text-[15px] font-light text-ink-2">החשבון יימחק. הפרסומים יישמרו בארכיון הכיתות ללא פרטים מזהים.</p>
+                                <p className="min-w-0 flex-[1_1_240px] text-[15px] leading-6 font-light text-ink-2">החשבון יימחק. הפרסומים יישמרו בארכיון הכיתות ללא פרטים מזהים.</p>
                             )}
                             <button
                                 type="button"
@@ -224,14 +222,15 @@ function AdminUserDetailsModal({ userId, onClose, onDeleted }: AdminUserDetailsM
                                     resetDelete();
                                     setIsConfirmOpen(true);
                                 }}
-                                className="btn btn-danger-soft btn-sm mt-4"
+                                className="btn btn-danger-soft btn-sm shrink-0"
                             >
                                 מחיקת משתמשת
                             </button>
+                            </div>
                         </footer>
                     </>
                 )}
-            </section>
+        </Modal>
 
             {isConfirmOpen && user && (
                 <ConfirmDialog
@@ -249,7 +248,7 @@ function AdminUserDetailsModal({ userId, onClose, onDeleted }: AdminUserDetailsM
                     }}
                 />
             )}
-        </div>
+        </>
     );
 }
 

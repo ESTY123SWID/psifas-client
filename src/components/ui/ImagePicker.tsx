@@ -34,11 +34,11 @@ function ImagePicker({ id, file, existingUrl, disabled, invalid, inputRef, onCha
             htmlFor={id}
             className={`group relative flex cursor-pointer flex-col items-center justify-center overflow-hidden rounded-2xl border-2 border-dashed transition ${
                 invalid ? "border-coral/50 bg-coral-mist/40" : "border-line bg-paper/60 hover:border-blue/40 hover:bg-mist/40"
-            } ${shownUrl ? "aspect-[16/10]" : "py-9"} ${disabled ? "pointer-events-none opacity-60" : ""}`}
+            } ${shownUrl ? "h-36 sm:h-44" : "py-7"} ${disabled ? "pointer-events-none opacity-60" : ""}`}
         >
             {shownUrl ? (
                 <>
-                    <img src={shownUrl} alt="תצוגה מקדימה של התמונה" className="absolute inset-0 h-full w-full object-cover" />
+                    <img src={shownUrl} alt="תצוגה מקדימה של התמונה" className="absolute inset-0 h-full w-full bg-sand-l object-contain" />
                     <span className="absolute bottom-3 left-3 inline-flex items-center gap-1.5 rounded-lg bg-white/90 px-3 py-1.5 text-xs font-bold text-ink shadow-sm backdrop-blur">
                         <RefreshCw size={13} aria-hidden="true" />
                         החלפת תמונה

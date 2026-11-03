@@ -59,6 +59,11 @@
   }
   /* Fade only: an animated `transform` would make the page the containing block of
      `position: fixed` dialogs, so their backdrop would no longer cover the whole screen. */
+  --animate-modal-in: modal-in 0.22s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  @keyframes modal-in {
+    from { opacity: 0; transform: translateY(8px) scale(0.985); }
+    to { opacity: 1; transform: none; }
+  }
   --animate-page-in: page-in 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) both;
   @keyframes page-in {
     from { opacity: 0; }
@@ -252,12 +257,10 @@
   }
 
   /* ---------- modal ---------- */
-  .modal-backdrop {
-    @apply fixed inset-0 z-[90] flex items-end justify-center bg-ink/40 p-0 backdrop-blur-[2px] sm:items-center sm:p-6;
-  }
-
+  /* Layout of the overlay and panel lives in components/ui/Modal.tsx; this is only the inner spacing.
+     The panel never scrolls internally — compact spacing keeps every dialog on one screen. */
   .modal-panel {
-    @apply max-h-[94svh] w-full overflow-y-auto border-t-2 border-t-ink bg-surface p-6 shadow-lift sm:max-w-xl sm:p-10;
+    @apply px-4 py-5 sm:px-9 sm:py-8;
   }
 }
 

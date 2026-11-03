@@ -1,10 +1,11 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { X } from "lucide-react";
 
 import type { EditPostFormValues, EditPostModalProps } from "../../types/posts.types";
 import { useUpdatePostMutation } from "../../services/postsApi";
 import ImagePicker from "../ui/ImagePicker";
+import Modal from "../ui/Modal";
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -32,17 +33,6 @@ function EditPostModal({ classId, post, onClose }: EditPostModalProps) {
 		requestRef.current?.abort();
 		onClose();
 	};
-
-	useEffect(() => {
-		const handleKey = (event: KeyboardEvent) => {
-			if (event.key === "Escape") {
-				requestRef.current?.abort();
-				onClose();
-			}
-		};
-		document.addEventListener("keydown", handleKey);
-		return () => document.removeEventListener("keydown", handleKey);
-	}, [onClose]);
 
 	const submitChanges = handleSubmit(async (values) => {
 		if (isLoading) return;
@@ -80,9 +70,9 @@ function EditPostModal({ classId, post, onClose }: EditPostModalProps) {
 	const isSaving = isLoading || isSubmitting;
 
 	return (
-		<div className="modal-backdrop" role="presentation">
-			<section className="modal-panel" role="dialog" aria-modal="true" aria-labelledby={`${id}-title`}>
-				<header className="mb-6 flex items-start justify-between gap-4">
+		// Escape and the close button cancel (and abort a pending save); a click outside does not, so edits are not lost.
+		<Modal labelledBy={`${id}-title`} onClose={handleCancel} closeOnBackdrop={false}>
+				<header className="mb-5 flex items-start justify-between gap-4">
 					<div>
 						<p className="eyebrow mb-1 text-lilac">מלטשות את הזיכרון</p>
 						<h2 className="font-display text-2xl font-normal text-ink" id={`${id}-title`}>עריכת פרסום</h2>
@@ -92,7 +82,7 @@ function EditPostModal({ classId, post, onClose }: EditPostModalProps) {
 					</button>
 				</header>
 
-				<form onSubmit={submitChanges} noValidate className="space-y-5">
+				<form onSubmit={submitChanges} noValidate className="space-y-4 sm:space-y-5">
 					<div>
 						<label className="field-label" htmlFor={`${id}-heading`}>כותרת הפרסום</label>
 						<input
@@ -120,7 +110,7 @@ function EditPostModal({ classId, post, onClose }: EditPostModalProps) {
 							id={`${id}-content`}
 							maxLength={2000}
 							disabled={isSaving}
-							className={`input min-h-32 resize-y ${post.type === "quote" ? "font-display text-base leading-7" : ""}`}
+							className={`input min-h-28 resize-y ${post.type === "quote" ? "font-display text-base leading-7" : ""}`}
 							aria-invalid={Boolean(errors.content)}
 							{...register("content", {
 								validate: {
@@ -167,17 +157,16 @@ function EditPostModal({ classId, post, onClose }: EditPostModalProps) {
 						<p className="alert-error" role="alert">לא הצלחנו לשמור את השינויים. נסי שוב.</p>
 					)}
 
-					<div className="flex flex-col-reverse gap-2 border-t border-line pt-5 sm:flex-row sm:justify-end">
-						<button className="btn btn-ghost" type="button" onClick={handleCancel}>
+					<div className="flex justify-end gap-2.5 border-t border-line pt-5">
+						<button className="btn btn-secondary" type="button" onClick={handleCancel}>
 							{isSaving ? "ביטול פעולה" : "ביטול"}
 						</button>
-						<button className="btn btn-primary px-6" type="submit" disabled={isSaving}>
+						<button className="btn btn-brand" type="submit" disabled={isSaving}>
 							{isSaving ? "שומרת..." : "שמירת שינויים"}
 						</button>
 					</div>
 				</form>
-			</section>
-		</div>
+		</Modal>
 	);
 }
 

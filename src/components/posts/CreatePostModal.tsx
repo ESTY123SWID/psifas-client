@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from "react";
+import { useId, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import type { ChangeEvent } from "react";
 import { ImageIcon, Quote, X } from "lucide-react";
@@ -6,6 +6,7 @@ import { ImageIcon, Quote, X } from "lucide-react";
 import type { CreatePostFormValues, CreatePostModalProps, CreatePostType } from "../../types/createPost.types";
 import { useCreatePostMutation } from "../../services/postsApi";
 import ImagePicker from "../ui/ImagePicker";
+import Modal from "../ui/Modal";
 
 const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
@@ -30,7 +31,6 @@ function CreatePostModal({ classId, onClose, onCreated, initialType = "quote" }:
     });
     const postType = watch("type");
 
-    const dialogRef = useRef<HTMLDivElement>(null);
     const titleInputRef = useRef<HTMLInputElement>(null);
     const imageInputRef = useRef<HTMLInputElement>(null);
     const headingId = useId();
@@ -46,36 +46,6 @@ function CreatePostModal({ classId, onClose, onCreated, initialType = "quote" }:
         onChange: () => resetMutation(),
     });
 
-    useEffect(() => {
-        const previousFocus = document.activeElement;
-        titleInputRef.current?.focus();
-
-        const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.key === "Escape" && !isLoading) onClose();
-            if (event.key !== "Tab") return;
-
-            const focusableElements = dialogRef.current?.querySelectorAll<HTMLElement>(
-                'button:not([disabled]), input:not([disabled]), textarea:not([disabled]), select:not([disabled]), a[href]'
-            );
-            if (!focusableElements?.length) return;
-
-            const first = focusableElements[0];
-            const last = focusableElements[focusableElements.length - 1];
-            if (event.shiftKey && document.activeElement === first) {
-                event.preventDefault();
-                last.focus();
-            } else if (!event.shiftKey && document.activeElement === last) {
-                event.preventDefault();
-                first.focus();
-            }
-        };
-
-        document.addEventListener("keydown", handleKeyDown);
-        return () => {
-            document.removeEventListener("keydown", handleKeyDown);
-            if (previousFocus instanceof HTMLElement) previousFocus.focus();
-        };
-    }, [onClose, isLoading]);
 
     const handleTypeChange = (type: CreatePostType) => {
         if (isLoading) return;
@@ -139,15 +109,8 @@ function CreatePostModal({ classId, onClose, onCreated, initialType = "quote" }:
     });
 
     return (
-        <div
-            role="presentation"
-            className="modal-backdrop"
-            onMouseDown={(event) => {
-                if (event.target === event.currentTarget && !isLoading) onClose();
-            }}
-        >
-            <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby={headingId} className="modal-panel">
-                <header className="mb-6 flex items-start justify-between gap-4">
+        <Modal labelledBy={headingId} onClose={onClose} dismissible={!isLoading} initialFocusRef={titleInputRef}>
+                <header className="mb-5 flex items-start justify-between gap-4">
                     <div>
                         <p className="eyebrow mb-1 text-teal">רגע חדש לארכיון</p>
                         <h2 className="font-display text-2xl font-normal text-ink" id={headingId}>הוספת פרסום</h2>
@@ -157,7 +120,7 @@ function CreatePostModal({ classId, onClose, onCreated, initialType = "quote" }:
                     </button>
                 </header>
 
-                <form onSubmit={submitPost} noValidate className="space-y-5">
+                <form onSubmit={submitPost} noValidate className="space-y-4 sm:space-y-5">
                     <fieldset className="grid grid-cols-2 gap-3" disabled={isLoading}>
                         <legend className="field-label">סוג הפרסום</legend>
                         {TYPE_OPTIONS.map(({ value, label, hint, icon: Icon }) => {
@@ -165,7 +128,7 @@ function CreatePostModal({ classId, onClose, onCreated, initialType = "quote" }:
                             return (
                                 <label
                                     key={value}
-                                    className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-3.5 transition has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-blue ${
+                                    className={`flex cursor-pointer items-start gap-3 rounded-2xl border p-3 transition sm:p-3.5 has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-blue ${
                                         checked ? "border-blue bg-mist/70 shadow-sm" : "border-line hover:bg-paper"
                                     }`}
                                 >
@@ -219,7 +182,7 @@ function CreatePostModal({ classId, onClose, onCreated, initialType = "quote" }:
                                 maxLength={2001}
                                 disabled={isLoading}
                                 aria-invalid={Boolean(errors.content)}
-                                className="input min-h-36 resize-y font-display text-base leading-7"
+                                className="input min-h-28 resize-y font-display text-base leading-7 sm:min-h-32"
                                 {...register("content", {
                                     validate: {
                                         requiredForQuote: (value) => postType !== "quote" || value.trim().length > 0 || "יש להזין את תוכן המשפט.",
@@ -256,7 +219,7 @@ function CreatePostModal({ classId, onClose, onCreated, initialType = "quote" }:
                                     id="post-description"
                                     maxLength={2000}
                                     disabled={isLoading}
-                                    className="input min-h-24 resize-y"
+                                    className="input min-h-20 resize-y"
                                     {...register("content", { onChange: () => resetMutation() })}
                                 />
                             </div>
@@ -265,15 +228,14 @@ function CreatePostModal({ classId, onClose, onCreated, initialType = "quote" }:
 
                     {isError && <p className="alert-error" role="alert">לא הצלחנו להוסיף את הפרסום. נסי שוב.</p>}
 
-                    <footer className="flex flex-col-reverse gap-2 border-t border-line pt-5 sm:flex-row sm:justify-end">
-                        <button type="button" onClick={onClose} disabled={isLoading} className="btn btn-ghost">ביטול</button>
-                        <button type="submit" disabled={isLoading} className="btn btn-primary px-6">
+                    <footer className="flex justify-end gap-2.5 border-t border-line pt-5">
+                        <button type="button" onClick={onClose} disabled={isLoading} className="btn btn-secondary">ביטול</button>
+                        <button type="submit" disabled={isLoading} className="btn btn-brand">
                             {isLoading ? "מפרסמת..." : "פרסום"}
                         </button>
                     </footer>
                 </form>
-            </div>
-        </div>
+        </Modal>
     );
 }
 
