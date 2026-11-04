@@ -5,6 +5,7 @@ import { ImageIcon, Quote, X } from "lucide-react";
 
 import type { CreatePostFormValues, CreatePostModalProps, CreatePostType } from "../../types/createPost.types";
 import { useCreatePostMutation } from "../../services/postsApi";
+import { rotateImageFile } from "../../utils/rotateImage";
 import ImagePicker from "../ui/ImagePicker";
 import Modal from "../ui/Modal";
 
@@ -18,6 +19,7 @@ const TYPE_OPTIONS: { value: CreatePostType; label: string; hint: string; icon: 
 
 function CreatePostModal({ classId, onClose, onCreated, initialType = "quote" }: CreatePostModalProps) {
     const [image, setImage] = useState<File | null>(null);
+    const [rotation, setRotation] = useState(0);
     const {
         register,
         handleSubmit,
@@ -25,7 +27,7 @@ function CreatePostModal({ classId, onClose, onCreated, initialType = "quote" }:
         setValue,
         setError,
         clearErrors,
-        formState: { errors },
+        formState: { errors, isSubmitting },
     } = useForm<CreatePostFormValues>({
         defaultValues: { type: initialType, title: "", content: "", image: null },
     });
@@ -36,7 +38,9 @@ function CreatePostModal({ classId, onClose, onCreated, initialType = "quote" }:
     const headingId = useId();
     const imageId = useId();
 
-    const [createPost, { isLoading, isError, reset: resetMutation }] = useCreatePostMutation();
+    const [createPost, { isLoading: isSending, isError, reset: resetMutation }] = useCreatePostMutation();
+    // Includes preparing the rotated image before it is sent.
+    const isLoading = isSending || isSubmitting;
 
     const titleRegistration = register("title", {
         validate: {
@@ -52,6 +56,7 @@ function CreatePostModal({ classId, onClose, onCreated, initialType = "quote" }:
         setValue("type", type, { shouldDirty: true });
         setValue("content", "", { shouldDirty: true });
         setImage(null);
+        setRotation(0);
         clearErrors();
         resetMutation();
         if (imageInputRef.current) imageInputRef.current.value = "";
@@ -61,6 +66,7 @@ function CreatePostModal({ classId, onClose, onCreated, initialType = "quote" }:
         const selectedFile = event.target.files?.[0] ?? null;
         clearErrors("image");
         resetMutation();
+        setRotation(0);
 
         if (!selectedFile) {
             setImage(null);
@@ -82,7 +88,7 @@ function CreatePostModal({ classId, onClose, onCreated, initialType = "quote" }:
     };
 
     const submitPost = handleSubmit(async (values) => {
-        if (isLoading) return;
+        if (isSending) return;
         if (postType === "image" && !image) {
             setError("image", { message: "יש לבחור תמונה." });
             return;
@@ -95,7 +101,12 @@ function CreatePostModal({ classId, onClose, onCreated, initialType = "quote" }:
             formData.append("content", values.content.trim());
         }
         if (postType === "image" && image) {
-            formData.append("image", image);
+            try {
+                formData.append("image", await rotateImageFile(image, rotation, MAX_IMAGE_SIZE));
+            } catch {
+                setError("image", { message: "לא הצלחנו לסובב את התמונה. נסי שוב או בחרי תמונה קטנה יותר." });
+                return;
+            }
             if (values.content.trim()) formData.append("content", values.content.trim());
         }
 
@@ -206,6 +217,8 @@ function CreatePostModal({ classId, onClose, onCreated, initialType = "quote" }:
                                     invalid={Boolean(errors.image)}
                                     inputRef={imageInputRef}
                                     onChange={handleImageChange}
+                                    rotation={rotation}
+                                    onRotate={() => setRotation((turns) => turns + 1)}
                                 />
                                 {image && <p className="field-hint">נבחרה תמונה: {image.name}</p>}
                                 {errors.image?.message && <p className="field-error" role="alert">{errors.image.message}</p>}

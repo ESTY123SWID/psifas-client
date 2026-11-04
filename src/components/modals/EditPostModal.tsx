@@ -4,6 +4,7 @@ import { X } from "lucide-react";
 
 import type { EditPostFormValues, EditPostModalProps } from "../../types/posts.types";
 import { useUpdatePostMutation } from "../../services/postsApi";
+import { rotateImageFile } from "../../utils/rotateImage";
 import ImagePicker from "../ui/ImagePicker";
 import Modal from "../ui/Modal";
 
@@ -13,6 +14,7 @@ const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
 function EditPostModal({ classId, post, onClose }: EditPostModalProps) {
 	const id = useId();
 	const [image, setImage] = useState<File | null>(null);
+	const [rotation, setRotation] = useState(0);
 	const [removeImage, setRemoveImage] = useState(false);
 	const [updatePost, { isLoading, isError }] = useUpdatePostMutation();
 	const requestRef = useRef<ReturnType<typeof updatePost> | null>(null);
@@ -51,7 +53,12 @@ function EditPostModal({ classId, post, onClose }: EditPostModalProps) {
 		formData.append("title", values.title.trim());
 		formData.append("content", values.content.trim());
 		if (image) {
-			formData.append("image", image);
+			try {
+				formData.append("image", await rotateImageFile(image, rotation, MAX_IMAGE_SIZE));
+			} catch {
+				setError("root.server", { message: "לא הצלחנו לסובב את התמונה. נסי שוב או בחרי תמונה קטנה יותר." });
+				return;
+			}
 		} else if (removeImage) {
 			formData.append("removeImage", "true");
 		}
@@ -133,9 +140,12 @@ function EditPostModal({ classId, post, onClose }: EditPostModalProps) {
 								disabled={isSaving}
 								onChange={(event) => {
 									setImage(event.currentTarget.files?.[0] ?? null);
+									setRotation(0);
 									setRemoveImage(false);
 									clearErrors("root.server");
 								}}
+								rotation={rotation}
+								onRotate={() => setRotation((turns) => turns + 1)}
 							/>
 							{post.imageUrl && !image && (
 								<label className="mt-3 inline-flex cursor-pointer items-center gap-2 rounded-xl bg-paper px-3 py-2 text-sm text-ink">
